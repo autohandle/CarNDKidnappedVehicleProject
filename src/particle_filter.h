@@ -10,6 +10,7 @@
 #define PARTICLE_FILTER_H_
 
 #include "helper_functions.h"
+#include <random>
 
 struct Particle {
 
@@ -39,8 +40,29 @@ class ParticleFilter {
 	std::vector<double> weights;
 	
 public:
+  
+  static LandmarkObs& /* xMap, yMap */ transform(const double particleX, const double particleY, const double theRoationfromCarToParticle, const double observationX, const double observationY) {
+    LandmarkObs* const inMapCoordinates = new LandmarkObs;
+    (*inMapCoordinates).x = particleX+cos(theRoationfromCarToParticle)*observationX-sin(theRoationfromCarToParticle)*observationY;
+    (*inMapCoordinates).y = particleY+sin(theRoationfromCarToParticle)*observationX+ cos(theRoationfromCarToParticle)*observationY;
+    return (*inMapCoordinates);
+  }
+  
+  static LandmarkObs& /* xMap, yMap */ transform(const Particle theParticle, const LandmarkObs theObservation) {
+    return transform(theParticle.x, theParticle.y, theParticle.theta, theObservation.x, theObservation.y);
+  }
 	
-	// Set of current particles
+  static std::vector<LandmarkObs> /* xMap, yMap */ transform(const Particle theParticle, std::vector<LandmarkObs> theObservations) {
+    std::vector<LandmarkObs> transformedObservations;
+    for (int o=0; o<theObservations.size(); o++) {
+      const LandmarkObs observation = theObservations[o];
+      const LandmarkObs transformedObservation = transform(theParticle, observation);
+      transformedObservations.push_back(transformedObservation);
+    }
+    return transformedObservations;
+  }
+  
+  // Set of current particles
 	std::vector<Particle> particles;
 
 	// Constructor
@@ -59,7 +81,7 @@ public:
 	 * @param std[] Array of dimension 3 [standard deviation of x [m], standard deviation of y [m]
 	 *   standard deviation of yaw [rad]]
 	 */
-	void init(double x, double y, double theta, double std[]);
+	void init(const double x, const double y, const double theta, const double std[]);
 
 	/**
 	 * prediction Predicts the state for the next time step
@@ -70,7 +92,7 @@ public:
 	 * @param velocity Velocity of car from t to t+1 [m/s]
 	 * @param yaw_rate Yaw rate of car from t to t+1 [rad/s]
 	 */
-	void prediction(double delta_t, double std_pos[], double velocity, double yaw_rate);
+	void prediction(const double delta_t, const double std_pos[], const double velocity, const double yaw_rate);
 	
 	/**
 	 * dataAssociation Finds which observations correspond to which landmarks (likely by using
@@ -78,7 +100,7 @@ public:
 	 * @param predicted Vector of predicted landmark observations
 	 * @param observations Vector of landmark observations
 	 */
-	void dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations);
+	void dataAssociation(std::vector<LandmarkObs>& predicted, std::vector<LandmarkObs>& observations);
 	
 	/**
 	 * updateWeights Updates the weights for each particle based on the likelihood of the 
@@ -113,8 +135,24 @@ public:
 	const bool initialized() const {
 		return is_initialized;
 	}
+  
+  const void setNumberOfParticles(const int theNumberOfParticles) {
+    if (initialized()) {
+      throw std::logic_error("Already Initialized");
+    }
+    num_particles=theNumberOfParticles;
+  }
+
+  const Particle& createParticle(const double theX, const double theY, const double theTheta);
+  const void addParticleToFilter(const Particle& theParticle);
+  const void deleteAllParticlesInFilter();
+ 
+private:
+  
+  std::default_random_engine gen;
+
 };
 
-
+static int particleId=0;
 
 #endif /* PARTICLE_FILTER_H_ */

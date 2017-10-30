@@ -14,6 +14,7 @@
 #include <vector>
 #include "map.h"
 
+
 // for portability of M_PI (Vis Studio, MinGW, etc.)
 #ifndef M_PI
 const double M_PI = 3.14159265358979323846;
@@ -68,6 +69,14 @@ inline double * getError(double gt_x, double gt_y, double gt_theta, double pf_x,
 		error[2] = 2.0 * M_PI - error[2];
 	}
 	return error;
+}
+
+inline double rsmePosition(const double* const error/*x,y,theta*/) {
+  return sqrt(error[0]*error[0]+error[1]*error[1]);
+}
+
+inline double rsmeTheta(const double* const error/*x,y,theta*/) {
+  return sqrt(error[2]*error[2]);
 }
 
 /* Reads map data from a file.
@@ -239,6 +248,51 @@ inline bool read_landmark_data(std::string filename, std::vector<LandmarkObs>& o
 		observations.push_back(meas);
 	}
 	return true;
+}
+
+static bool areSame(const double a, const double b, const double epsilon) {
+  return fabs(a - b) < epsilon;
+}
+
+inline bool areSame(const int theSize, const double a[], const double b[], const double epsilon) {
+  for (int r=0; r<theSize; r++) {
+    if (!areSame(a[r], b[r], epsilon)) {
+      std::cout << std::endl
+      << "a(" << r << "):" << a[r] << " != "
+      << "b(" << r << "):" << b[r] << " == "
+      << "fabs(a-b):" << fabs(a[r] - b[r])
+      << std::endl;
+      return false;
+    }
+  }
+  return true;
+}
+
+inline bool isZero(const double a, const double epsilon) {
+  return fabs(a) < epsilon;
+}
+
+inline bool isNotZero(const double a, const double epsilon) {
+  return !isZero(a, epsilon);
+}
+
+static const double EPSILON=1.e-5;
+
+inline bool areSame(const int theSize, const double a[], const double b[]) {
+  return areSame(theSize, a, b, EPSILON);
+}
+
+inline bool areSame(double a, double b) {
+  return areSame(a, b, EPSILON);
+}
+
+inline bool isZero(double a) {
+  return isZero(a, EPSILON);
+  
+}
+
+inline bool isNotZero(double a) {
+  return isNotZero(a, EPSILON);
 }
 
 #endif /* HELPER_FUNCTIONS_H_ */
