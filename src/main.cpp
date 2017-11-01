@@ -38,6 +38,9 @@ int testInit() {
     assert(areSame(pf.particles[p].y, gps_y, epsilon));
     assert(areSame(pf.particles[p].theta, theta, epsilon));
   }
+  
+  assert(pf.initialized());
+  
   return 0;
 }
 
@@ -70,7 +73,7 @@ int testPredict() {
   const double calculated_x = 97.592046082729055;
   const double calculated_y = 75.07741997215382;
   const double calculated_theta = (51.*M_PI)/80.;
-
+  
   pf0.prediction(0.1/*deltaT*/, zero_sigma_pos ,  110., M_PI/8.);
   for (int p=0; p<pf0.particles.size(); p++) {
     assert(areSame(pf0.particles[p].x, calculated_x));
@@ -78,6 +81,7 @@ int testPredict() {
     assert(areSame(pf0.particles[p].theta, calculated_theta));
   }
   pf0.prediction(0./*deltaT*/, (double[]) {0.1, 0.1, 0.1} ,  1., 1.);
+  // deltaT==0. -> x,y,theta can't change
   for (int p=0; p<pf0.particles.size(); p++) {
     assert(!areSame(pf0.particles[p].x, calculated_x));
     assert(!areSame(pf0.particles[p].y, calculated_y));
@@ -87,6 +91,70 @@ int testPredict() {
     assert(areSame(pf0.particles[p].y, calculated_y, epsilon));
     assert(areSame(pf0.particles[p].theta, calculated_theta, epsilon));
   }
+  
+  // testing 0 yawRate
+  
+  const double deltaT = 1.0;
+  const double velocity = 100.0;
+  const double initThetaXOnly = 0.;// particles all facing right
+  const double zeroYawRate = 0.;// particles only move in facing direction
+  
+  ParticleFilter pf1;
+  pf1.setNumberOfParticles(numberOfParticles);
+  
+  pf1.init(init_x, init_y, initThetaXOnly, zero_sigma_pos);
+  assert(pf1.particles.size()==numberOfParticles);
+  for (int p=0; p<pf1.particles.size(); p++) {
+    assert(areSame(pf1.particles[p].x, init_x));
+    assert(areSame(pf1.particles[p].y, init_y));
+    assert(areSame(pf1.particles[p].theta, initThetaXOnly));
+  }
+  pf1.prediction(deltaT, zero_sigma_pos ,  velocity, zeroYawRate);
+  for (int p=0; p<pf1.particles.size(); p++) {
+    assert(areSame(pf1.particles[p].x, init_x+(velocity*deltaT)));// v*dt in x only
+    assert(areSame(pf1.particles[p].y, init_y));
+    assert(areSame(pf1.particles[p].theta, initThetaXOnly));
+  }
+  
+  ParticleFilter pf2;
+  pf2.setNumberOfParticles(numberOfParticles);
+  const double initThetaYOnly = M_PI/2.;// particles all facing up
+  
+  pf2.init(init_x, init_y, initThetaYOnly, zero_sigma_pos);
+  assert(pf2.particles.size()==numberOfParticles);
+  for (int p=0; p<pf2.particles.size(); p++) {
+    assert(areSame(pf2.particles[p].x, init_x));
+    assert(areSame(pf2.particles[p].y, init_y));
+    assert(areSame(pf2.particles[p].theta, initThetaYOnly));
+  }
+  pf2.prediction(deltaT, zero_sigma_pos ,  velocity, zeroYawRate);
+  for (int p=0; p<pf2.particles.size(); p++) {
+    assert(areSame(pf2.particles[p].x, init_x));
+    assert(areSame(pf2.particles[p].y, init_y)+(velocity*deltaT));// v*dt in y only
+    assert(areSame(pf2.particles[p].theta, initThetaYOnly));
+  }
+  
+  ParticleFilter pf3;
+  pf3.setNumberOfParticles(2);
+  
+  pf3.init(init_x, init_y, init_theta, zero_sigma_pos);
+  assert(pf3.particles.size()==2);
+  for (int p=0; p<pf3.particles.size(); p++) {
+    assert(areSame(pf3.particles[p].x, init_x));
+    assert(areSame(pf3.particles[p].y, init_y));
+    assert(areSame(pf3.particles[p].theta, init_theta));
+  }
+  
+  // noise only
+  double sigma_pos [3] = {0.3, 0.3, 0.01};
+  
+  pf3.prediction(0.0/* deltaT */, sigma_pos ,  0./* velocity */, 0./* yaw rate */);
+  for (int p=0; p<pf3.particles.size(); p++) {
+    assert(areSame(pf3.particles[p].x, init_x, 3.*sigma_pos[0]));
+    assert(areSame(pf3.particles[p].y, init_y, 3.*sigma_pos[1]));
+    assert(areSame(pf3.particles[p].theta, init_theta, 3.*sigma_pos[2]));
+  }
+  
   return 0;
 }
 
@@ -104,10 +172,10 @@ int testError() {
   
   const double positionError = rsmePosition(error);
   assert(areSame(positionError, 0.63245553203367733));
-
+  
   const double angleError = rsmeTheta(error);
   assert(areSame(angleError, M_PI/16.));
-
+  
   return 0;
 }
 
@@ -117,7 +185,7 @@ int testTransform() {
   particle.x=4.;
   particle.y=5.;
   particle.theta = -M_PI/2.;
-
+  
   LandmarkObs observation1;
   observation1.x=2.;
   observation1.y=2.;
@@ -155,7 +223,7 @@ int testTransform() {
   
   assert (areSame(transformedObservations[2].x, 0.));
   assert (areSame(transformedObservations[2].y, 5.));
-
+  
   return 0;
 }
 
@@ -174,27 +242,27 @@ int testDataAssociation() {
   landmark2.x=2.;
   landmark2.y=1.;
   landmarks.push_back(landmark2);
-
+  
   LandmarkObs landmark3;
   landmark3.id=3;
   landmark3.x=6.;
   landmark3.y=1.;
   landmarks.push_back(landmark3);
-
+  
   LandmarkObs landmark4;
   landmark4.id=4;
   landmark4.x=7.;
   landmark4.y=4.;
   landmarks.push_back(landmark4);
-
+  
   LandmarkObs landmark5;
   landmark5.id=5;
   landmark5.x=4.;
   landmark5.y=7.;
   landmarks.push_back(landmark5);
-
+  
   std::vector<LandmarkObs> observations;
-
+  
   LandmarkObs observation1;
   observation1.x=2.;
   observation1.y=2.;
@@ -214,15 +282,217 @@ int testDataAssociation() {
   particle.x=4.;
   particle.y=5.;
   particle.theta = -M_PI/2.;
-
+  
   ParticleFilter pf;
   std::vector<LandmarkObs> /* xMap, yMap */  transformedObservations=ParticleFilter::transform(particle, observations);
   pf.dataAssociation(transformedObservations, landmarks);
+  
+  assert(transformedObservations[0].id==0);// 0 -> L1
+  assert(transformedObservations[1].id==1);// 1 -> L2
+  assert(transformedObservations[2].id==1);// 1 -> L2
+  
+  return 0;
+}
 
-  assert(transformedObservations[0].id==1);
-  assert(transformedObservations[1].id==2);
-  assert(transformedObservations[2].id==2);
+int testParticleWeight() {
+  
+  std::vector<LandmarkObs> landmarks;
+  
+  LandmarkObs landmark1;
+  landmark1.id=1;
+  landmark1.x=5.;
+  landmark1.y=3.;
+  landmarks.push_back(landmark1);
+  
+  LandmarkObs landmark2;
+  landmark2.id=2;
+  landmark2.x=2.;
+  landmark2.y=1.;
+  landmarks.push_back(landmark2);
+  
+  LandmarkObs landmark3;
+  landmark3.id=3;
+  landmark3.x=6.;
+  landmark3.y=1.;
+  landmarks.push_back(landmark3);
+  
+  LandmarkObs landmark4;
+  landmark4.id=4;
+  landmark4.x=7.;
+  landmark4.y=4.;
+  landmarks.push_back(landmark4);
+  
+  LandmarkObs landmark5;
+  landmark5.id=5;
+  landmark5.x=4.;
+  landmark5.y=7.;
+  landmarks.push_back(landmark5);
+  
+  std::vector<LandmarkObs> observations;
+  
+  LandmarkObs observation1;
+  observation1.x=2.;
+  observation1.y=2.;
+  observations.push_back(observation1);
+  
+  LandmarkObs observation2;
+  observation2.x=3.;
+  observation2.y=-2.;
+  observations.push_back(observation2);
+  
+  LandmarkObs observation3;
+  observation3.x=0.;
+  observation3.y=-4.;
+  observations.push_back(observation3);
+  
+  Particle particle;
+  particle.x=4.;
+  particle.y=5.;
+  particle.theta = -M_PI/2.;
+  
+  std::vector<LandmarkObs> /* xMap, yMap */  transformedObservations=ParticleFilter::transform(particle, observations);
+  for (int tO=0; tO<transformedObservations.size(); tO++) {
+    assert(transformedObservations[tO].id<0); // assert transformedObservations are unlinked
+  }
+  const double sigmas[] = {0.3, 0.3};
+  
+  //   static const double particleWeight(const double theMeanX, const double theMeanY, const Particle theParticle, const double theParticleSigmas[]/* sx, sy */) {
+  
+  const double particleWeight1 = ParticleFilter::particleWeight(transformedObservations[0] /* observation 1*/, landmark1, sigmas);
+  assert(areSame(particleWeight1, 6.84e-3));
+  
+  const double particleWeight2 = ParticleFilter::particleWeight(transformedObservations[1] /* observation 2*/, landmark2, sigmas);
+  assert(areSame(particleWeight2, 6.84e-3));
+  
+  const double particleWeight3 = ParticleFilter::particleWeight(transformedObservations[2] /* observation 3*/, landmark2, sigmas);
+  assert(areSame(particleWeight3, 9.83e-49));
+  
+  ParticleFilter pf;
+  pf.dataAssociation(transformedObservations, landmarks);
+  for (int tO=0; tO<transformedObservations.size(); tO++) {
+    assert(transformedObservations[tO].id>=0); // assert transformedObservations are linked, links are tested in testDataAssociation
+  }
+  const double particleWeight = ParticleFilter::particleWeight(transformedObservations, landmarks, sigmas);
+  assert(areSame(particleWeight, 4.60E-53));
+  
+  return 0;
+}
 
+int testFilterLandmarkMap() {
+  
+  std::vector<Map::single_landmark_s> landmarks;// in map coordinates
+  
+  Map::single_landmark_s single_landmark1;
+  single_landmark1.id_i=1;
+  single_landmark1.x_f=5.;// 1.
+  single_landmark1.y_f=3.;// 2.
+  landmarks.push_back(single_landmark1);
+  
+  Map::single_landmark_s single_landmark2;
+  single_landmark2.id_i=2;
+  single_landmark2.x_f=2.;// 2.
+  single_landmark2.y_f=1.;// 4.
+  landmarks.push_back(single_landmark2);
+  
+  Map::single_landmark_s single_landmark3;
+  single_landmark3.id_i=3;
+  single_landmark3.x_f=6.;// 2.
+  single_landmark3.y_f=1.;// 4.
+  landmarks.push_back(single_landmark3);
+  
+  Map::single_landmark_s single_landmark4;
+  single_landmark4.id_i=4;
+  single_landmark4.x_f=7.;// 3.
+  single_landmark4.y_f=4.;// 1.
+  landmarks.push_back(single_landmark4);
+  
+  Map::single_landmark_s single_landmark5;
+  single_landmark5.id_i=5;
+  single_landmark5.x_f=4.;// 0.
+  single_landmark5.y_f=7.;// 2.
+  landmarks.push_back(single_landmark5);
+  
+  Map map;
+  map.landmark_list=landmarks;
+  
+  Particle particle;// in map coordinates
+  particle.x=4.;
+  particle.y=5.;
+  particle.theta = -M_PI/2.;
+  
+  std::vector<LandmarkObs> allLandmarks=ParticleFilter::filterLandmarkMap(map, particle, 5.); // 5 should keep all landmarks
+  assert(allLandmarks.size()==map.landmark_list.size() && allLandmarks.size()>0);
+  
+  std::vector<LandmarkObs> someLandmarks=ParticleFilter::filterLandmarkMap(map, particle, 3.); // 3 should keep 1 & 5 landmarks
+  assert(someLandmarks.size()==2 && someLandmarks[0].id==1 && someLandmarks[1].id==5);
+  
+  return 0;
+}
+
+int testResample() {
+  
+  ParticleFilter pf;
+  double zero_sigma_pos [3] = {0., 0., 0.};
+  const double gps_x = 4983;
+  const double gps_y = 5029;
+  const double theta = 1.201;
+  
+  const int numberOfParticles=10;
+  pf.setNumberOfParticles(numberOfParticles);
+  const int firstParticleIdAtTestStart = pf.currentParticleId();
+  
+  pf.init(gps_x, gps_y, theta, zero_sigma_pos);
+  assert(pf.particles.size()==numberOfParticles);
+  for (int p=0; p<pf.particles.size(); p++) {
+    assert(areSame(pf.particles[p].x, gps_x));
+    assert(areSame(pf.particles[p].y, gps_y));
+    assert(areSame(pf.particles[p].theta, theta));
+    assert(areSame(pf.particles[p].weight, 1.));
+  }
+  
+  const int lastParticleIdAtTestStart = pf.currentParticleId();
+  
+  pf.resample();
+  // pf.particles probably has Particle repeats now
+  assert(pf.particles.size()==numberOfParticles);
+  for (int p=0; p<pf.particles.size(); p++) {
+    assert(areSame(pf.particles[p].x, gps_x));
+    assert(areSame(pf.particles[p].y, gps_y));
+    assert(areSame(pf.particles[p].theta, theta));
+    assert(areSame(pf.particles[p].weight, 1.));
+  }
+  
+  const int numberOfParticlesToRemove=5;
+  assert(numberOfParticlesToRemove<numberOfParticles);
+  for (int p=numberOfParticlesToRemove; p<pf.particles.size(); p++) {// flag
+    pf.particles[p].weight=0.;
+  }
+  for (int p=0; p<numberOfParticlesToRemove; p++) {
+    assert(areSame(pf.particles[p].x, gps_x));
+    assert(areSame(pf.particles[p].y, gps_y));
+    assert(areSame(pf.particles[p].theta, theta));
+    assert(areSame(pf.particles[p].weight, 1.));
+  }
+  for (int p=numberOfParticlesToRemove; p<numberOfParticles; p++) {
+    assert(areSame(pf.particles[p].x, gps_x));
+    assert(areSame(pf.particles[p].y, gps_y));
+    assert(areSame(pf.particles[p].theta, theta));
+    assert(areSame(pf.particles[p].weight, 0.));
+  }
+  
+  pf.resample();
+  
+  assert(pf.particles.size()==numberOfParticles);
+  for (int p=0; p<pf.particles.size(); p++) {
+    const Particle& particle=pf.particles[p];
+    assert(areSame(pf.particles[p].x, gps_x));
+    assert(areSame(pf.particles[p].y, gps_y));
+    assert(areSame(pf.particles[p].theta, theta));
+    assert(areSame(particle.weight, 1.));
+    const int maxParticleId=lastParticleIdAtTestStart+numberOfParticles-numberOfParticlesToRemove;
+    assert(particle.id<maxParticleId);// will the id's be preserved?
+  }
+  
   return 0;
 }
 
@@ -232,6 +502,9 @@ int test() {
   testError();
   testTransform();
   testDataAssociation();
+  testParticleWeight();
+  testFilterLandmarkMap();
+  testResample();
   return 0;
 }
 
@@ -242,7 +515,7 @@ int runFromFiles() {
   double max_runtime = 45; // Max allowable runtime to pass [sec]
   double max_translation_error = 1; // Max allowable translation error to pass [m]
   double max_yaw_error = 0.05; // Max allowable yaw error [rad]
-
+  
   // Start timer.
   int start = clock();
   
@@ -336,12 +609,18 @@ int runFromFiles() {
     int num_particles = particles.size();
     double highest_weight = 0.0;
     Particle best_particle;
+    double weight_sum = 0.0;
     for (int i = 0; i < num_particles; ++i) {
       if (particles[i].weight > highest_weight) {
         highest_weight = particles[i].weight;
         best_particle = particles[i];
       }
+      weight_sum += particles[i].weight;
     }
+    
+    cout << "highest w " << highest_weight << endl;
+    cout << "average w " << weight_sum/num_particles << endl;
+    
     double *avg_error = getError(gt[i].x, gt[i].y, gt[i].theta, best_particle.x, best_particle.y, best_particle.theta);
     
     for (int j = 0; j < 3; ++j) {
@@ -409,7 +688,7 @@ std::string hasData(std::string s) {
 }
 
 static bool RUNFROMFILES=false;
-static bool RUNTESTS=true;
+static bool RUNTESTS=false;
 
 int main()
 {
@@ -419,33 +698,33 @@ int main()
     return runFromFiles();
   } else {
     uWS::Hub h;
-
+    
     //Set up parameters here
     double delta_t = 0.1; // Time elapsed between measurements [sec]
     double sensor_range = 50; // Sensor range [m]
-
+    
     double sigma_pos [3] = {0.3, 0.3, 0.01}; // GPS measurement uncertainty [x [m], y [m], theta [rad]]
     double sigma_landmark [2] = {0.3, 0.3}; // Landmark measurement uncertainty [x [m], y [m]]
-
+    
     // Read map data
     Map map;
     if (!read_map_data("../data/map_data.txt", map)) {
       cout << "Error: Could not open map file" << endl;
       return -1;
     }
-
+    
     // Create particle filter
     ParticleFilter pf;
-
+    
     h.onMessage([&pf,&map,&delta_t,&sensor_range,&sigma_pos,&sigma_landmark](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
       // "42" at the start of the message means there's a websocket message event.
       // The 4 signifies a websocket message
       // The 2 signifies a websocket event
-
+      
       std::cout << "data: <" << data << ">" << std::endl;
       if (length && length > 2 && data[0] == '4' && data[1] == '2')
       {
-
+        
         auto s = hasData(std::string(data));
         if (s != "") {
           
@@ -455,96 +734,97 @@ int main()
           
           if (event == "telemetry") {
             // j[1] is the data JSON object
-
-
+            
+            
             if (!pf.initialized()) {
-
+              
               // Sense noisy position data from the simulator
-        double sense_x = std::stod(j[1]["sense_x"].get<std::string>());
-        double sense_y = std::stod(j[1]["sense_y"].get<std::string>());
-        double sense_theta = std::stod(j[1]["sense_theta"].get<std::string>());
-
-        pf.init(sense_x, sense_y, sense_theta, sigma_pos);
-        }
-        else {
-        // Predict the vehicle's next state from previous (noiseless control) data.
-          double previous_velocity = std::stod(j[1]["previous_velocity"].get<std::string>());
-        double previous_yawrate = std::stod(j[1]["previous_yawrate"].get<std::string>());
-
-        pf.prediction(delta_t, sigma_pos, previous_velocity, previous_yawrate);
-        }
-
-        // receive noisy observation data from the simulator
-        // sense_observations in JSON format [{obs_x,obs_y},{obs_x,obs_y},...{obs_x,obs_y}]
-          vector<LandmarkObs> noisy_observations;
-          string sense_observations_x = j[1]["sense_observations_x"];
-          string sense_observations_y = j[1]["sense_observations_y"];
-
-          std::vector<float> x_sense;
-          std::istringstream iss_x(sense_observations_x);
-
-          std::copy(std::istream_iterator<float>(iss_x),
-            std::istream_iterator<float>(),
-            std::back_inserter(x_sense));
-
+              double sense_x = std::stod(j[1]["sense_x"].get<std::string>());
+              double sense_y = std::stod(j[1]["sense_y"].get<std::string>());
+              double sense_theta = std::stod(j[1]["sense_theta"].get<std::string>());
+              
+              pf.init(sense_x, sense_y, sense_theta, sigma_pos);
+            }
+            else {
+              // Predict the vehicle's next state from previous (noiseless control) data.
+              double previous_velocity = std::stod(j[1]["previous_velocity"].get<std::string>());
+              double previous_yawrate = std::stod(j[1]["previous_yawrate"].get<std::string>());
+              
+              pf.prediction(delta_t, sigma_pos, previous_velocity, previous_yawrate);
+            }
+            
+            // receive noisy observation data from the simulator
+            // sense_observations in JSON format [{obs_x,obs_y},{obs_x,obs_y},...{obs_x,obs_y}]
+            vector<LandmarkObs> noisy_observations;
+            string sense_observations_x = j[1]["sense_observations_x"];
+            string sense_observations_y = j[1]["sense_observations_y"];
+            
+            std::vector<float> x_sense;
+            std::istringstream iss_x(sense_observations_x);
+            
+            std::copy(std::istream_iterator<float>(iss_x),
+                      std::istream_iterator<float>(),
+                      std::back_inserter(x_sense));
+            
             std::vector<float> y_sense;
-          std::istringstream iss_y(sense_observations_y);
-
-          std::copy(std::istream_iterator<float>(iss_y),
-            std::istream_iterator<float>(),
-            std::back_inserter(y_sense));
-
+            std::istringstream iss_y(sense_observations_y);
+            
+            std::copy(std::istream_iterator<float>(iss_y),
+                      std::istream_iterator<float>(),
+                      std::back_inserter(y_sense));
+            
             for(int i = 0; i < x_sense.size(); i++)
             {
               LandmarkObs obs;
               obs.x = x_sense[i];
-          obs.y = y_sense[i];
-          noisy_observations.push_back(obs);
+              obs.y = y_sense[i];
+              noisy_observations.push_back(obs);
             }
-
-        // Update the weights and resample
-        pf.updateWeights(sensor_range, sigma_landmark, noisy_observations, map);
-        pf.resample();
-
-        // Calculate and output the average weighted error of the particle filter over all time steps so far.
-        vector<Particle> particles = pf.particles;
-        int num_particles = particles.size();
-        double highest_weight = -1.0;
-        Particle best_particle;
-        double weight_sum = 0.0;
-        for (int i = 0; i < num_particles; ++i) {
-        if (particles[i].weight > highest_weight) {
-          highest_weight = particles[i].weight;
-          best_particle = particles[i];
-        }
-        weight_sum += particles[i].weight;
-        }
-        cout << "highest w " << highest_weight << endl;
-        cout << "average w " << weight_sum/num_particles << endl;
-
+            
+            // Update the weights and resample
+            cout << "noisy_observations:" << noisy_observations.size() << std::endl;
+            pf.updateWeights(sensor_range, sigma_landmark, noisy_observations, map);
+            pf.resample();
+            
+            // Calculate and output the average weighted error of the particle filter over all time steps so far.
+            vector<Particle> particles = pf.particles;
+            int num_particles = particles.size();
+            double highest_weight = -1.0;
+            Particle best_particle;
+            double weight_sum = 0.0;
+            for (int i = 0; i < num_particles; ++i) {
+              if (particles[i].weight > highest_weight) {
+                highest_weight = particles[i].weight;
+                best_particle = particles[i];
+              }
+              weight_sum += particles[i].weight;
+            }
+            cout << "highest w " << highest_weight << endl;
+            cout << "average w " << weight_sum/num_particles << endl;
+            
             json msgJson;
             msgJson["best_particle_x"] = best_particle.x;
             msgJson["best_particle_y"] = best_particle.y;
             msgJson["best_particle_theta"] = best_particle.theta;
-
+            
             //Optional message data used for debugging particle's sensing and associations
             msgJson["best_particle_associations"] = pf.getAssociations(best_particle);
             msgJson["best_particle_sense_x"] = pf.getSenseX(best_particle);
             msgJson["best_particle_sense_y"] = pf.getSenseY(best_particle);
-
+            
             auto msg = "42[\"best_particle\"," + msgJson.dump() + "]";
             // std::cout << msg << std::endl;
             ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
-      
+            
           }
         } else {
           std::string msg = "42[\"manual\",{}]";
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
         }
       }
-
+      
     });
-
+    
     // We don't need this since we're not using HTTP but if it's removed the program
     // doesn't compile :-(
     h.onHttpRequest([](uWS::HttpResponse *res, uWS::HttpRequest req, char *data, size_t, size_t) {
@@ -559,16 +839,16 @@ int main()
         res->end(nullptr, 0);
       }
     });
-
+    
     h.onConnection([&h](uWS::WebSocket<uWS::SERVER> ws, uWS::HttpRequest req) {
       std::cout << "Connected!!!" << std::endl;
     });
-
+    
     h.onDisconnection([&h](uWS::WebSocket<uWS::SERVER> ws, int code, char *message, size_t length) {
       ws.close();
       std::cout << "Disconnected" << std::endl;
     });
-
+    
     int port = 4567;
     if (h.listen(port))
     {
@@ -582,3 +862,4 @@ int main()
     h.run();
   }
 }
+
