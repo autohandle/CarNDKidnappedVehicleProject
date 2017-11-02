@@ -1,146 +1,229 @@
-# Overview
-This repository contains all the code needed to complete the final project for the Localization course in Udacity's Self-Driving Car Nanodegree.
+# Kidnapped Vehicle
 
-#### Submission
-All you will submit is your completed version of `particle_filter.cpp`, which is located in the `src` directory. You should probably do a `git pull` before submitting to verify that your project passes the most up-to-date version of the grading code (there are some parameters in `src/main.cpp` which govern the requirements on accuracy and run time.)
+#### Compiling
+##### Code must compile without errors with cmake and make.
 
-## Project Introduction
-Your robot has been kidnapped and transported to a new location! Luckily it has a map of this location, a (noisy) GPS estimate of its initial location, and lots of (noisy) sensor and control data.
+``` shell
+Softwares-MacBook-Pro:tmp david$ git clone https://github.com/autohandle/CarNDKidnappedVehicleProject.git
+Cloning into 'CarNDKidnappedVehicleProject'...
+remote: Counting objects: 2622, done.
+remote: Compressing objects: 100% (2483/2483), done.
+remote: Total 2622 (delta 97), reused 2622 (delta 97), pack-reused 0
+Receiving objects: 100% (2622/2622), 426.70 KiB | 1.30 MiB/s, done.
+Resolving deltas: 100% (97/97), done.
+Softwares-MacBook-Pro:tmp david$ cd CarNDKidnappedVehicleProject/
+Softwares-MacBook-Pro:CarNDKidnappedVehicleProject david$ mkdir build
+Softwares-MacBook-Pro:CarNDKidnappedVehicleProject david$ cd build
+Softwares-MacBook-Pro:build david$ cmake ..
+-- The C compiler identification is AppleClang 9.0.0.9000037
+-- The CXX compiler identification is AppleClang 9.0.0.9000037
+-- Check for working C compiler: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc
+-- Check for working C compiler: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc -- works
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Check for working CXX compiler: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++
+-- Check for working CXX compiler: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -- works
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /tmp/CarNDKidnappedVehicleProject/build
+Softwares-MacBook-Pro:build david$ make
+Scanning dependencies of target particle_filter
+[ 33%] Building CXX object CMakeFiles/particle_filter.dir/src/particle_filter.cpp.o
+[ 66%] Building CXX object CMakeFiles/particle_filter.dir/src/main.cpp.o
+[100%] Linking CXX executable particle_filter
+ld: warning: directory not found for option '-L/usr/local/Cellar/libuv/1.11.0/lib'
+[100%] Built target particle_filter
+Softwares-MacBook-Pro:build david$ ./particle_filter
+Listening to port 4567
+Connected!!!
+data: <2훼��vcket.io/?EIO=4&transport=websocket HTTP/1.1
+user-agent: websocket-sharp/1.0
+upgrade: websocket
+connection: Upgrade
+host: 127.0.0.1:4567
+sec-websocket-key: WpqvzQDcW0NqKBrKQHllvQ==
+sec-websocket-version: 13
 
-In this project you will implement a 2 dimensional particle filter in C++. Your particle filter will be given a map and some initial localization information (analogous to what a GPS would provide). At each time step your filter will also get observation and control data. 
-
-## Running the Code
-This project involves the Term 2 Simulator which can be downloaded [here](https://github.com/udacity/self-driving-car-sim/releases)
-
-This repository includes two files that can be used to set up and intall uWebSocketIO for either Linux or Mac systems. For windows you can use either Docker, VMware, or even Windows 10 Bash on Ubuntu to install uWebSocketIO.
-
-Once the install for uWebSocketIO is complete, the main program can be built and ran by doing the following from the project top directory.
-
-1. mkdir build
-2. cd build
-3. cmake ..
-4. make
-5. ./particle_filter
-
-Alternatively some scripts have been included to streamline this process, these can be leveraged by executing the following in the top directory of the project:
-
-1. ./clean.sh
-2. ./build.sh
-3. ./run.sh
-
-Tips for setting up your environment can be found [here](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/f758c44c-5e40-4e01-93b5-1a82aa4e044f/concepts/23d376c7-0195-4276-bdf0-e02f1f3c665d)
-
-Note that the programs that need to be written to accomplish the project are src/particle_filter.cpp, and particle_filter.h
-
-The program main.cpp has already been filled out, but feel free to modify it.
-
-Here is the main protcol that main.cpp uses for uWebSocketIO in communicating with the simulator.
-
-INPUT: values provided by the simulator to the c++ program
-
-// sense noisy position data from the simulator
-
-["sense_x"] 
-
-["sense_y"] 
-
-["sense_theta"] 
-
-// get the previous velocity and yaw rate to predict the particle's transitioned state
-
-["previous_velocity"]
-
-["previous_yawrate"]
-
-// receive noisy observation data from the simulator, in a respective list of x/y values
-
-["sense_observations_x"] 
-
-["sense_observations_y"] 
-
-
-OUTPUT: values provided by the c++ program to the simulator
-
-// best particle values used for calculating the error evaluation
-
-["best_particle_x"]
-
-["best_particle_y"]
-
-["best_particle_theta"] 
-
-//Optional message data used for debugging particle's sensing and associations
-
-// for respective (x,y) sensed positions ID label 
-
-["best_particle_associations"]
-
-// for respective (x,y) sensed positions
-
-["best_particle_sense_x"] <= list of sensed x positions
-
-["best_particle_sense_y"] <= list of sensed y positions
-
-
-Your job is to build out the methods in `particle_filter.cpp` until the simulator output says:
-
-```
-Success! Your particle filter passed!
+>
 ```
 
-# Implementing the Particle Filter
-The directory structure of this repository is as follows:
+#### Accuracy
+##### The output says "Success! Your particle filter passed!"
 
+![Your Particle Filter Passed](./images/YourParticleFilterPassed.png)
+
+#### Performance
+##### Runs within the specified time of 100 seconds
+
+The simulation shows a completion time of: 64 seconds. I ran the simulation several times and the maximum finishing time was 95 seconds — that worst-case performance can be viewed in the [video](https://s3.amazonaws.com/autohandle.com/video/CarNDKidnappedVehicleProject.mp4).
+
+#### General
+##### Code uses a particle filter and follows the Correct Algorithm
+
+
+The algorithm is implemented in
+[ParticleFilter.cpp](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/master/src/particle_filter.cpp) and [ParticleFIlter.h](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/master/src/particle_filter.h).
+
+###### [ParticleFilter::init](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/24502292382ccf2178b8a5f79b45967ffa671ea8/src/particle_filter.cpp#L23-L49)
+
+The main program first initializes the [ParticleFilter](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/master/src/particle_filter.cpp) in [ParticleFilter::init](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/24502292382ccf2178b8a5f79b45967ffa671ea8/src/particle_filter.cpp#L23-L49) with 500 particles in a random state (x,y, and theta) around an initial x,y gps reading,
+
+``` C++
+for (int particle = 0; particle < num_particles; ++particle) {
+    double sample_x, sample_y, sample_theta;
+    
+    // TODO: Sample  and from these normal distrubtions like this:
+    // sample_x = dist_x(gen);
+    // where "gen" is the random engine initialized earlier.
+    sample_x=dist_x(gen);
+    sample_y=dist_y(gen);
+    sample_theta=dist_theta(gen);
+    addParticleToFilter(createParticle(sample_x, sample_y, sample_theta));
+  }
+
+  is_initialized=true;
 ```
-root
-|   build.sh
-|   clean.sh
-|   CMakeLists.txt
-|   README.md
-|   run.sh
-|
-|___data
-|   |   
-|   |   map_data.txt
-|   
-|   
-|___src
-    |   helper_functions.h
-    |   main.cpp
-    |   map.h
-    |   particle_filter.cpp
-    |   particle_filter.h
+then the `is_initialized` flag is set so that the main program does not try to initialize [ParticleFilter](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/master/src/particle_filter.cpp) again.
+
+After initialization, the main program loops through: [ParticleFilter::prediction](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/24502292382ccf2178b8a5f79b45967ffa671ea8/src/particle_filter.cpp#L58-L98), [ParticleFilter::updateWeights](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/24502292382ccf2178b8a5f79b45967ffa671ea8/src/particle_filter.cpp#L145-L183), and [ParticleFilter::resample](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/24502292382ccf2178b8a5f79b45967ffa671ea8/src/particle_filter.cpp#L185-L240).
+
+###### [ParticleFilter::prediction](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/24502292382ccf2178b8a5f79b45967ffa671ea8/src/particle_filter.cpp#L58-L98)
+
+[ParticleFilter::prediction](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/24502292382ccf2178b8a5f79b45967ffa671ea8/src/particle_filter.cpp#L58-L98) loops through every particle in the [ParticleFilter](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/master/src/particle_filter.cpp) updating its state. If the `yaw_rate` is 0, then only the x,y position is updated using the current velocity and time step
+``` c++
+const double deltaV = delta_t*velocity;
+xf = x0 + deltaV*cos(theta0);
+yf = y0 + deltaV*sin(theta0);
+thetaf = theta0;
+```
+otherwise, the `yaw_rate` is used to update all three state variables
+``` C++
+xf = x0 +(velocity/yaw_rate)*(sin(theta0+yaw_rate*delta_t)-sin(theta0));
+yf = y0 +(velocity/yaw_rate)*(cos(theta0)-cos(theta0+yaw_rate*delta_t));
+thetaf = theta0+yaw_rate*delta_t;
+```
+In both cases, noise is added to all the state variables
+``` C++
+normal_distribution<double> noisyXf(xf, std_pos[0]);
+normal_distribution<double> noisyYf(yf, std_pos[1]);
+normal_distribution<double> noisyThetaf(thetaf, std_pos[2]);
+
+particle.x=noisyXf(gen);
+particle.y=noisyYf(gen);
+assert(!std::isnan(particle.y) && !std::isnan(particle.y));
+particle.theta=noisyThetaf(gen);
+```
+After the particle states have been updated, the accuracy/weight of each particle at the new/predicted location can be calculated.
+
+###### [ParticleFilter::updateWeights](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/24502292382ccf2178b8a5f79b45967ffa671ea8/src/particle_filter.cpp#L145-L183)
+
+First, the list of all landmarks is reduced in [filterLandmarkMap](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/24502292382ccf2178b8a5f79b45967ffa671ea8/src/particle_filter.h#L94-L108) by using the `sensor_range` and the particle's new/predicted location
+```C++
+if (fabs(fabs(landmarkInMap.x_f)-fabs(theParticle.x))<theSensorRange && fabs(fabs(landmarkInMap.y_f)-fabs(theParticle.y))<theSensorRange) {
+  LandmarkObs landmarkInRange;
+  landmarkInRange.id=landmarkInMap.id_i;
+  landmarkInRange.x=landmarkInMap.x_f;
+  landmarkInRange.y=landmarkInMap.y_f;
+  landmarksInSensorRange.push_back(landmarkInRange);
+}
+```
+Then, assuming each particle is where the current `observations` were actually made, the `observations` vector is transformed into map coordinates by using each particle x,y,theta position in [transform](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/24502292382ccf2178b8a5f79b45967ffa671ea8/src/particle_filter.h#L45-L66) to translate and rotate each observation.
+``` C++
+LandmarkObs* const inMapCoordinates = new LandmarkObs;
+(*inMapCoordinates).id=-1;// flag landmark as unlinked
+(*inMapCoordinates).x = particleX+cos(theRoationfromCarToParticle)*observationX-sin(theRoationfromCarToParticle)*observationY;
+(*inMapCoordinates).y = particleY+sin(theRoationfromCarToParticle)*observationX+ cos(theRoationfromCarToParticle)*observationY;
+return (*inMapCoordinates);
+```
+The transformed observations and the reduced landmark list are used by [ParticleFilter::dataAssociation](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/24502292382ccf2178b8a5f79b45967ffa671ea8/src/particle_filter.cpp#L100-L120) to link each tranformed observation to the closest landmark.
+``` C++
+LandmarkObs& landmark = theLandmarks[lm];
+const double distanceToLandmark=dist(landmark.x, landmark.y, prediction.x, prediction.y);
+if (distanceToLandmark<bestDistance) {
+  // different prediction can point to the same landmark
+  prediction.id=lm;// attach this prediction to this landmark
+  //std::cout << "prediction:" << prediction.id << ", landmark:" << landmark.id << std::endl;
+  bestDistance=distanceToLandmark;
+} // end if better distance
+```
+The `LandmarkObs.id` field is used to hold the vector index of the closest landmark to the observation.
+
+Once the observations for each particle are linked to the nearest landmark, then the weight (or likelihood that the particle is at the actual vehicle location) can be calculated by [ParticleFilter::particleWeight](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/24502292382ccf2178b8a5f79b45967ffa671ea8/src/particle_filter.h#L68-L92)
+```C++
+const double sigmaX=theObservationMeasurementSigmas[0];
+const double sigmaXSquared = sigmaX*sigmaX;
+const double sigmaY=theObservationMeasurementSigmas[1];
+const double sigmaYSquared = sigmaY*sigmaY;
+const double xDiff=theTransformedObservation.x-theLandmark.x;
+const double xDiffSquared=xDiff*xDiff;
+const double yDiff=theTransformedObservation.y-theLandmark.y;
+const double yDiffSquared=yDiff*yDiff;
+
+return (1./(2*M_PI*sigmaX*sigmaY))*exp(-1.*((xDiffSquared/(2.*sigmaXSquared)) + (yDiffSquared/(2.*sigmaYSquared))) );
+```
+using the [multivariate normal distribution](https://en.wikipedia.org/wiki/Multivariate_normal_distribution) for the x and y components. Weights for each observations are treated independent and are multiplied together
+```C++
+double cummulativeWeight=1.0;
+for (int obs=0; obs<theTransformedObservations.size(); obs++) {
+  const LandmarkObs& observation = theTransformedObservations[obs];
+  assert((observation.id>=0) && (observation.id<theLandmarks.size()));// observation.id==-1 -> not linked to a landmark
+  const LandmarkObs& landmark = theLandmarks[observation.id];
+  const double landmarkObservationWeight = particleWeight(landmark, observation, theObservationMeasurementSigmas);
+  cummulativeWeight*=landmarkObservationWeight;
+}
+```
+After the observations are transformed for each particle, linked to the nearest landmark, and then used to update the particle weight — the list of particles is sampled to increase the number of particles that have a highest weight and proportionally reduce the others.
+
+###### [ParticleFilter::resample](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/24502292382ccf2178b8a5f79b45967ffa671ea8/src/particle_filter.cpp#L185-L240)
+
+First, all the zero weight particles are culled and the `totalWeight` for all the nonzero particles is calculated
+``` C++
+std::vector<Particle> particlesToResample;
+double totalWeight=0.;
+for (int p=0; p<particles.size();p++) {
+  Particle& particle = particles[p];
+  if (isParicleWeightGreaterThanZero(particle)) {
+    totalWeight+=particle.weight;
+    particlesToResample.push_back(particle);
+  }
+}
+```
+with the `totalWeight` and the weight of each nonzero particle, a `cummulativeParticleProbability` vector can be built
+``` C++
+double cummulativeProbability=0.;
+for (int p=0; p<particlesToResample.size();p++) {
+  const Particle& particle = particlesToResample[p];
+  const double particleProbabilty=particle.weight/totalWeight;
+  cummulativeProbability+=particleProbabilty;
+  //cummulativeParticleProbability[p]=cummulativeProbability;
+  cummulativeParticleProbability.push_back(cummulativeProbability);
+
+}
+```
+With a `cummulativeParticleProbability` vector and a uniform 0—1 random number generator, the nonzero particles can be sampled proportional to their weight.
+``` C++
+std::uniform_real_distribution<double> distribution(0.,1.);
+std::vector<Particle> resamples;
+for (int p=0; p<num_particles;p++) {// forall particle slots in the original number of samples
+  const double randomProbability = distribution(gen);
+  int cpi=0;
+  while (cummulativeParticleProbability[cpi]<randomProbability) {
+    cpi+=1;
+    //cout << "randomProbability:" << randomProbability << ", cummulativeParticleProbability[" << cpi << "]:" << cummulativeParticleProbability[cpi] << std::endl;
+  }
+  resamples.push_back(particlesToResample[cpi]);
+}
 ```
 
-The only file you should modify is `particle_filter.cpp` in the `src` directory. The file contains the scaffolding of a `ParticleFilter` class and some associated methods. Read through the code, the comments, and the header file `particle_filter.h` to get a sense for what this code is expected to do.
+#### Video Implementation
 
-If you are interested, take a look at `src/main.cpp` as well. This file contains the code that will actually be running your particle filter and calling the associated methods.
+[Kidnapped Vehicle Project](https://s3.amazonaws.com/autohandle.com/video/CarNDKidnappedVehicleProject.mp4)
 
-## Inputs to the Particle Filter
-You can find the inputs to the particle filter in the `data` directory. 
-
-#### The Map*
-`map_data.txt` includes the position of landmarks (in meters) on an arbitrary Cartesian coordinate system. Each row has three columns
-1. x position
-2. y position
-3. landmark id
-
-### All other data the simulator provides, such as observations and controls.
-
-> * Map data provided by 3D Mapping Solutions GmbH.
-
-## Success Criteria
-If your particle filter passes the current grading code in the simulator (you can make sure you have the current version at any time by doing a `git pull`), then you should pass! 
-
-The things the grading code is looking for are:
-
-
-1. **Accuracy**: your particle filter should localize vehicle position and yaw to within the values specified in the parameters `max_translation_error` and `max_yaw_error` in `src/main.cpp`.
-
-2. **Performance**: your particle filter should complete execution within the time of 100 seconds.
-
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
-
-
+The video was created by using a [screen recording tool](http://www.idownloadblog.com/2016/02/26/how-to-record-part-of-mac-screen-quicktime/).
 

@@ -1,22 +1,19 @@
-# Unscented Kalman Filter
+# Kidnapped Vehicle
 
 #### Compiling
 ##### Code must compile without errors with cmake and make.
 
 ``` shell
-Softwares-MacBook-Pro:tmp david$ git clone https://github.com/autohandle/CarNDUnscentedKalmanFilterProject.git
-Cloning into 'CarNDUnscentedKalmanFilterProject'...
-remote: Counting objects: 513, done.
-remote: Compressing objects: 100% (375/375), done.
-remote: Total 513 (delta 135), reused 513 (delta 135), pack-reused 0
-Receiving objects: 100% (513/513), 876.45 KiB | 4.74 MiB/s, done.
-Resolving deltas: 100% (135/135), done.
-Softwares-MacBook-Pro:tmp david$ cd CarNDUnscentedKalmanFilterProject/
-Softwares-MacBook-Pro:CarNDUnscentedKalmanFilterProject david$ ls
-CMakeLists.txt		buildXcode		install-mac.sh		readme.txt
-README.md		cmakepatch.txt		install-ubuntu.sh	src
-Softwares-MacBook-Pro:CarNDUnscentedKalmanFilterProject david$ mkdir build
-Softwares-MacBook-Pro:CarNDUnscentedKalmanFilterProject david$ cd build
+Softwares-MacBook-Pro:tmp david$ git clone https://github.com/autohandle/CarNDKidnappedVehicleProject.git
+Cloning into 'CarNDKidnappedVehicleProject'...
+remote: Counting objects: 2622, done.
+remote: Compressing objects: 100% (2483/2483), done.
+remote: Total 2622 (delta 97), reused 2622 (delta 97), pack-reused 0
+Receiving objects: 100% (2622/2622), 426.70 KiB | 1.30 MiB/s, done.
+Resolving deltas: 100% (97/97), done.
+Softwares-MacBook-Pro:tmp david$ cd CarNDKidnappedVehicleProject/
+Softwares-MacBook-Pro:CarNDKidnappedVehicleProject david$ mkdir build
+Softwares-MacBook-Pro:CarNDKidnappedVehicleProject david$ cd build
 Softwares-MacBook-Pro:build david$ cmake ..
 -- The C compiler identification is AppleClang 9.0.0.9000037
 -- The CXX compiler identification is AppleClang 9.0.0.9000037
@@ -34,358 +31,199 @@ Softwares-MacBook-Pro:build david$ cmake ..
 -- Detecting CXX compile features - done
 -- Configuring done
 -- Generating done
--- Build files have been written to: /tmp/CarNDUnscentedKalmanFilterProject/build
+-- Build files have been written to: /tmp/CarNDKidnappedVehicleProject/build
 Softwares-MacBook-Pro:build david$ make
-Scanning dependencies of target UnscentedKF
-[ 25%] Building CXX object CMakeFiles/UnscentedKF.dir/src/ukf.cpp.o
-[ 50%] Building CXX object CMakeFiles/UnscentedKF.dir/src/main.cpp.o
-[ 75%] Building CXX object CMakeFiles/UnscentedKF.dir/src/tools.cpp.o
-[100%] Linking CXX executable UnscentedKF
+Scanning dependencies of target particle_filter
+[ 33%] Building CXX object CMakeFiles/particle_filter.dir/src/particle_filter.cpp.o
+[ 66%] Building CXX object CMakeFiles/particle_filter.dir/src/main.cpp.o
+[100%] Linking CXX executable particle_filter
 ld: warning: directory not found for option '-L/usr/local/Cellar/libuv/1.11.0/lib'
-[100%] Built target UnscentedKF
-Softwares-MacBook-Pro:build david$ ./UnscentedKF
+[100%] Built target particle_filter
+Softwares-MacBook-Pro:build david$ ./particle_filter
 Listening to port 4567
 Connected!!!
-```
+data: <2훼��vcket.io/?EIO=4&transport=websocket HTTP/1.1
+user-agent: websocket-sharp/1.0
+upgrade: websocket
+connection: Upgrade
+host: 127.0.0.1:4567
+sec-websocket-key: WpqvzQDcW0NqKBrKQHllvQ==
+sec-websocket-version: 13
 
-![Data Set 1](./images/DataSet1.png)
+>
+```
 
 #### Accuracy
-#####  run against "obj_pose-laser-radar-synthetic-input.txt" RMSE should be less than or equal to the values [.09, .10, .40, .30]
+##### The output says "Success! Your particle filter passed!"
 
-The Unscented Kalman Filter run on obj_pose-laser-radar-synthetic-input.txt had a final RSME of: \[0.0616555, 0.0847325, 0.32956, 0.212253\]. The initial covariance P value was the Identity matrix set in the constructor, the inital x state was set by the first measurement value, a Laser measurement. The initial values for both std_a_  and std_yawdd_ were 0.6.
+![Your Particle Filter Passed](./images/YourParticleFilterPassed.png)
 
-#### Follows the Correct Algorithm
-#### Sensor Fusion algorithm
+#### Performance
+##### Runs within the specified time of 100 seconds
+
+The simulation shows a completion time of: 64 seconds. I ran the simulation several times and the maximum finishing time was 95 seconds — that worst-case performance can be viewed in the [video](https://s3.amazonaws.com/autohandle.com/video/CarNDKidnappedVehicleProject.mp4).
+
+#### General
+##### Code uses a particle filter and follows the Correct Algorithm
+
+
 The algorithm is implemented in
-[UKF::ProcessMeasurement](https://github.com/autohandle/CarNDUnscentedKalmanFilterProject/blob/c9128edb6d9b0dbce3230a258c313610472cc8e8/src/ukf.cpp#L133-L144)
+[ParticleFilter.cpp](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/master/src/particle_filter.cpp) and [ParticleFIlter.h](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/master/src/particle_filter.h).
+
+###### [ParticleFilter::init](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/24502292382ccf2178b8a5f79b45967ffa671ea8/src/particle_filter.cpp#L23-L49)
+
+The main program first initializes the [ParticleFilter](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/master/src/particle_filter.cpp) in [ParticleFilter::init](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/24502292382ccf2178b8a5f79b45967ffa671ea8/src/particle_filter.cpp#L23-L49) with 500 particles in a random state (x,y, and theta) around an initial x,y gps reading,
 
 ``` C++
-double UKF::ProcessMeasurement(const MeasurementPackage& theMeasurementPackage, const double theDeltaT) {
-  MatrixXd sigmaPointsPrediction = Prediction(theDeltaT);
-  double nis = Update(theMeasurementPackage, sigmaPointsPrediction);// updates KalmanState
-  return nis;
-}
-```
-[UKF::Prediction](https://github.com/autohandle/CarNDUnscentedKalmanFilterProject/blob/c9128edb6d9b0dbce3230a258c313610472cc8e8/src/ukf.cpp#L151-L164)
-takes `deltaT` and predicts the location of the augmented sigma points. It also updates the kalman state with the predicted values for: the state vector and the covariance matrix.
-``` C++
-MatrixXd UKF::Prediction(double deltaT) {// updates KalmanState, returns Xsig_pred
-  const MatrixXd sigmaPoints = generateSigmaPoints();
-  const MatrixXd augmentedSigmaPoints = augmentSigmaPoints();
-  const MatrixXd sigmaPointsPrediction = sigmaPointPrediction(deltaT, augmentedSigmaPoints);
-  KalmanState predictedKalmanState=predictMeanAndCovariance(sigmaPointsPrediction);
-  updateKalmanState(predictedKalmanState);
-  return sigmaPointsPrediction;
-}
-```
-[UKF::Update](https://github.com/autohandle/CarNDUnscentedKalmanFilterProject/blob/c9128edb6d9b0dbce3230a258c313610472cc8e8/src/ukf.cpp#L166-L178)
-takes the locations of the predicted sigma points and the new measurement and updates the kalman state: the state vector and the covariance matrix.
-``` C++
-double UKF::Update(const MeasurementPackage& theMeasurementPackage, const Eigen::MatrixXd& xSigPredicted) {
-  return Update(extractZMeasurement(theMeasurementPackage),xSigPredicted);
-}
-
-double UKF::Update(const Eigen::VectorXd& z, const Eigen::MatrixXd& xSigPredicted) {
-  MatrixXd zSigmaPoints = transformSigmaPointsToMeasurements(xSigPredicted);
-  VectorXd zPredicted = predictZ(zSigmaPoints);
-  MatrixXd S = measurementCovarianceMatrix(zSigmaPoints, zPredicted);
-  double nis = updateState(zSigmaPoints, zPredicted, xSigPredicted, S, z);
-  return nis;
-}
-```
-#### Handles the first measurements appropriately
-
-The first measurement is recognized in 
-[UKFProcessor::processMeasurement](https://github.com/autohandle/CarNDUnscentedKalmanFilterProject/blob/c9128edb6d9b0dbce3230a258c313610472cc8e8/src/ukf.cpp#L792-L798)
-because `is_initialized` is not set.
-``` C++
-double UKFProcessor::processMeasurement(const MeasurementPackage& theMeasurementPackage,
-                                              UKF *theFilter) {
-  
-  if (!is_initialized()) {
-    initialize(theMeasurementPackage, theFilter, kalmanState());
-    return 0.;
+for (int particle = 0; particle < num_particles; ++particle) {
+    double sample_x, sample_y, sample_theta;
+    
+    // TODO: Sample  and from these normal distrubtions like this:
+    // sample_x = dist_x(gen);
+    // where "gen" is the random engine initialized earlier.
+    sample_x=dist_x(gen);
+    sample_y=dist_y(gen);
+    sample_theta=dist_theta(gen);
+    addParticleToFilter(createParticle(sample_x, sample_y, sample_theta));
   }
 
-  double deltaT=(theMeasurementPackage.timestamp_-time_us_)/1000000.;//in seconds
-  time_us_= theMeasurementPackage.timestamp_;
-  return (*theFilter).ProcessMeasurement(theMeasurementPackage, deltaT);
+  is_initialized=true;
+```
+then the `is_initialized` flag is set so that the main program does not try to initialize [ParticleFilter](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/master/src/particle_filter.cpp) again.
+
+After initialization, the main program loops through: [ParticleFilter::prediction](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/24502292382ccf2178b8a5f79b45967ffa671ea8/src/particle_filter.cpp#L58-L98), [ParticleFilter::updateWeights](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/24502292382ccf2178b8a5f79b45967ffa671ea8/src/particle_filter.cpp#L145-L183), and [ParticleFilter::resample](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/24502292382ccf2178b8a5f79b45967ffa671ea8/src/particle_filter.cpp#L185-L240).
+
+###### [ParticleFilter::prediction](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/24502292382ccf2178b8a5f79b45967ffa671ea8/src/particle_filter.cpp#L58-L98)
+
+[ParticleFilter::prediction](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/24502292382ccf2178b8a5f79b45967ffa671ea8/src/particle_filter.cpp#L58-L98) loops through every particle in the [ParticleFilter](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/master/src/particle_filter.cpp) updating its state. If the `yaw_rate` is 0, then only the x,y position is updated using the current velocity and time step
+``` c++
+const double deltaV = delta_t*velocity;
+xf = x0 + deltaV*cos(theta0);
+yf = y0 + deltaV*sin(theta0);
+thetaf = theta0;
+```
+otherwise, the `yaw_rate` is used to update all three state variables
+``` C++
+xf = x0 +(velocity/yaw_rate)*(sin(theta0+yaw_rate*delta_t)-sin(theta0));
+yf = y0 +(velocity/yaw_rate)*(cos(theta0)-cos(theta0+yaw_rate*delta_t));
+thetaf = theta0+yaw_rate*delta_t;
+```
+In both cases, noise is added to all the state variables
+``` C++
+normal_distribution<double> noisyXf(xf, std_pos[0]);
+normal_distribution<double> noisyYf(yf, std_pos[1]);
+normal_distribution<double> noisyThetaf(thetaf, std_pos[2]);
+
+particle.x=noisyXf(gen);
+particle.y=noisyYf(gen);
+assert(!std::isnan(particle.y) && !std::isnan(particle.y));
+particle.theta=noisyThetaf(gen);
+```
+After the particle states have been updated, the accuracy/weight of each particle at the new/predicted location can be calculated.
+
+###### [ParticleFilter::updateWeights](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/24502292382ccf2178b8a5f79b45967ffa671ea8/src/particle_filter.cpp#L145-L183)
+
+First, the list of all landmarks is reduced in [filterLandmarkMap](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/24502292382ccf2178b8a5f79b45967ffa671ea8/src/particle_filter.h#L94-L108) by using the `sensor_range` and the particle's new/predicted location
+```C++
+if (fabs(fabs(landmarkInMap.x_f)-fabs(theParticle.x))<theSensorRange && fabs(fabs(landmarkInMap.y_f)-fabs(theParticle.y))<theSensorRange) {
+  LandmarkObs landmarkInRange;
+  landmarkInRange.id=landmarkInMap.id_i;
+  landmarkInRange.x=landmarkInMap.x_f;
+  landmarkInRange.y=landmarkInMap.y_f;
+  landmarksInSensorRange.push_back(landmarkInRange);
 }
 ```
-`UKFProcessor::processMeasurement` is called by [UKFProcessor::ProcessMeasurement](https://github.com/autohandle/CarNDUnscentedKalmanFilterProject/blob/c9128edb6d9b0dbce3230a258c313610472cc8e8/src/ukf.cpp#L771-L790)
-after the correct filter \(Radar or Lidar\) in the
-[MeasurementPackage](./src/measurement_package.h)
-is identified.
+Then, assuming each particle is where the current `observations` were actually made, the `observations` vector is transformed into map coordinates by using each particle x,y,theta position in [transform](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/24502292382ccf2178b8a5f79b45967ffa671ea8/src/particle_filter.h#L45-L66) to translate and rotate each observation.
 ``` C++
-double UKFProcessor::ProcessMeasurement(const MeasurementPackage& theMeasurementPackage) {
-  
-  switch(theMeasurementPackage.sensor_type_) {
-    case MeasurementPackage::RADAR :
-      if (Tools::TESTING) std::cout << "UKFProcessor::RADAR" << std::endl;
-      if (useRadar()) {
-        return processMeasurement(theMeasurementPackage, &radarFilter);
-      }
-      break;
-    case MeasurementPackage::LASER :
-      if (Tools::TESTING) std::cout << "UKFProcessor::LIDAR" << std::endl;
-      if (useLidar()) {
-        return processMeasurement(theMeasurementPackage, &lidarFilter);
-      }
-      break;
-    default :
-      throw std::invalid_argument("");
+LandmarkObs* const inMapCoordinates = new LandmarkObs;
+(*inMapCoordinates).id=-1;// flag landmark as unlinked
+(*inMapCoordinates).x = particleX+cos(theRoationfromCarToParticle)*observationX-sin(theRoationfromCarToParticle)*observationY;
+(*inMapCoordinates).y = particleY+sin(theRoationfromCarToParticle)*observationX+ cos(theRoationfromCarToParticle)*observationY;
+return (*inMapCoordinates);
+```
+The transformed observations and the reduced landmark list are used by [ParticleFilter::dataAssociation](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/24502292382ccf2178b8a5f79b45967ffa671ea8/src/particle_filter.cpp#L100-L120) to link each tranformed observation to the closest landmark.
+``` C++
+LandmarkObs& landmark = theLandmarks[lm];
+const double distanceToLandmark=dist(landmark.x, landmark.y, prediction.x, prediction.y);
+if (distanceToLandmark<bestDistance) {
+  // different prediction can point to the same landmark
+  prediction.id=lm;// attach this prediction to this landmark
+  //std::cout << "prediction:" << prediction.id << ", landmark:" << landmark.id << std::endl;
+  bestDistance=distanceToLandmark;
+} // end if better distance
+```
+The `LandmarkObs.id` field is used to hold the vector index of the closest landmark to the observation.
+
+Once the observations for each particle are linked to the nearest landmark, then the weight (or likelihood that the particle is at the actual vehicle location) can be calculated by [ParticleFilter::particleWeight](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/24502292382ccf2178b8a5f79b45967ffa671ea8/src/particle_filter.h#L68-L92)
+```C++
+const double sigmaX=theObservationMeasurementSigmas[0];
+const double sigmaXSquared = sigmaX*sigmaX;
+const double sigmaY=theObservationMeasurementSigmas[1];
+const double sigmaYSquared = sigmaY*sigmaY;
+const double xDiff=theTransformedObservation.x-theLandmark.x;
+const double xDiffSquared=xDiff*xDiff;
+const double yDiff=theTransformedObservation.y-theLandmark.y;
+const double yDiffSquared=yDiff*yDiff;
+
+return (1./(2*M_PI*sigmaX*sigmaY))*exp(-1.*((xDiffSquared/(2.*sigmaXSquared)) + (yDiffSquared/(2.*sigmaYSquared))) );
+```
+using the [multivariate normal distribution](https://en.wikipedia.org/wiki/Multivariate_normal_distribution) for the x and y components. Weights for each observations are treated independent and are multiplied together
+```C++
+double cummulativeWeight=1.0;
+for (int obs=0; obs<theTransformedObservations.size(); obs++) {
+  const LandmarkObs& observation = theTransformedObservations[obs];
+  assert((observation.id>=0) && (observation.id<theLandmarks.size()));// observation.id==-1 -> not linked to a landmark
+  const LandmarkObs& landmark = theLandmarks[observation.id];
+  const double landmarkObservationWeight = particleWeight(landmark, observation, theObservationMeasurementSigmas);
+  cummulativeWeight*=landmarkObservationWeight;
+}
+```
+After the observations are transformed for each particle, linked to the nearest landmark, and then used to update the particle weight — the list of particles is sampled to increase the number of particles that have a highest weight and proportionally reduce the others.
+
+###### [ParticleFilter::resample](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/24502292382ccf2178b8a5f79b45967ffa671ea8/src/particle_filter.cpp#L185-L240)
+
+First, all the zero weight particles are culled and the `totalWeight` for all the nonzero particles is calculated
+``` C++
+std::vector<Particle> particlesToResample;
+double totalWeight=0.;
+for (int p=0; p<particles.size();p++) {
+  Particle& particle = particles[p];
+  if (isParicleWeightGreaterThanZero(particle)) {
+    totalWeight+=particle.weight;
+    particlesToResample.push_back(particle);
   }
-  throw std::logic_error("Not Implemented");
 }
 ```
-`UKFProcessor::processMeasurement` can then call
-[UKFProcessor::initialize](https://github.com/autohandle/CarNDUnscentedKalmanFilterProject/blob/c9128edb6d9b0dbce3230a258c313610472cc8e8/src/ukf.cpp#L805-L841)
-to have the correct filter convert the measurement into a state to initialize the first kalman state.
+with the `totalWeight` and the weight of each nonzero particle, a `cummulativeParticleProbability` vector can be built
 ``` C++
-void UKFProcessor::initialize(const MeasurementPackage& theMeasurementPackage,
-                              UKF *theFilter,
-                              KalmanState& theKalmanState) {
-  if (!is_initialized()) {
-    initialize(theMeasurementPackage,
-               (*theFilter).transformMeasurementToState(theMeasurementPackage.raw_measurements_),
-               theKalmanState);
+double cummulativeProbability=0.;
+for (int p=0; p<particlesToResample.size();p++) {
+  const Particle& particle = particlesToResample[p];
+  const double particleProbabilty=particle.weight/totalWeight;
+  cummulativeProbability+=particleProbabilty;
+  //cummulativeParticleProbability[p]=cummulativeProbability;
+  cummulativeParticleProbability.push_back(cummulativeProbability);
+
+}
+```
+With a `cummulativeParticleProbability` vector and a uniform 0—1 random number generator, the nonzero particles can be sampled proportional to their weight.
+``` C++
+std::uniform_real_distribution<double> distribution(0.,1.);
+std::vector<Particle> resamples;
+for (int p=0; p<num_particles;p++) {// forall particle slots in the original number of samples
+  const double randomProbability = distribution(gen);
+  int cpi=0;
+  while (cummulativeParticleProbability[cpi]<randomProbability) {
+    cpi+=1;
+    //cout << "randomProbability:" << randomProbability << ", cummulativeParticleProbability[" << cpi << "]:" << cummulativeParticleProbability[cpi] << std::endl;
   }
-}
-
-void UKFProcessor::initialize(const MeasurementPackage& theMeasurementPackage,
-                              const VectorXd theInitialState,
-                              KalmanState& theKalmanState) {
-  if (!is_initialized()) {
-    time_us_= theMeasurementPackage.timestamp_;
-        
-    KalmanState newKalmanState=
-    KalmanState::KalmanState(theInitialState, theKalmanState.P());
-    theKalmanState.update(newKalmanState);
-
-    is_initialized_ = true;
-  }
+  resamples.push_back(particlesToResample[cpi]);
 }
 ```
-To correct set the initial state, the
-[RadarFilter::transformMeasurementToState](https://github.com/autohandle/CarNDUnscentedKalmanFilterProject/blob/c9128edb6d9b0dbce3230a258c313610472cc8e8/src/ukf.cpp#L659-L677)
-``` C++
-VectorXd RadarFilter::transformMeasurementToState(const VectorXd& theRawMeasurements) {
-  assert(n_z()==3);
-  assert(theRawMeasurements.size()==n_z());
-  double rho = theRawMeasurements(0);
-  double phi = theRawMeasurements(1);
-  double rhodot = theRawMeasurements(2);
-  
-  double vx = rho * cos(phi);
-  double vy = rho * sin(phi);
-  
-  assert(n_x()==5);
-  VectorXd state = VectorXd(n_x());
-  state(0) = rho*cos(phi);
-  state(1) = rho*sin(phi);
-  state(2) = sqrt(vx*vx+vy*vy);
-  state(3) = 0.;
-  state(4) = 0.;
-  return state;
-}
-```
-is different from the
-[LidarFilter::transformMeasurementToState](https://github.com/autohandle/CarNDUnscentedKalmanFilterProject/blob/c9128edb6d9b0dbce3230a258c313610472cc8e8/src/ukf.cpp#L723-L736)
-``` C++
-VectorXd LidarFilter::transformMeasurementToState(const VectorXd& theRawMeasurements) {
-  assert(n_z()==2);
-  assert(theRawMeasurements.size()==n_z());
-  double px = theRawMeasurements(0);
-  double py = theRawMeasurements(1);
-  assert(n_x()==5);
-  VectorXd state = VectorXd(n_x());
-  state(0) = px;
-  state(1) = py;
-  state(2) = 0.;
-  state(3) = 0.;
-  state(4) = 0.;
-  return state;
-}
-```
-#### Algorithm first predicts then updates
-[UKF::ProcessMeasurement](https://github.com/autohandle/CarNDUnscentedKalmanFilterProject/blob/c9128edb6d9b0dbce3230a258c313610472cc8e8/src/ukf.cpp#L133-L144)
-first calls Prediction and then calls Update
-``` C++
-double UKF::ProcessMeasurement(const MeasurementPackage& theMeasurementPackage, const double theDeltaT) {
-  MatrixXd sigmaPointsPrediction = Prediction(theDeltaT);
-  double nis = Update(theMeasurementPackage, sigmaPointsPrediction);// updates KalmanState
-  return nis;
-}
-```
-#### Can handle radar and lidar measurements.
-[UKFProcessor::ProcessMeasurement](https://github.com/autohandle/CarNDUnscentedKalmanFilterProject/blob/c9128edb6d9b0dbce3230a258c313610472cc8e8/src/ukf.cpp#L771-L790)
-selects the correct filter, either \(Radar or Lidar\) from the `sensor_type_` in the 
-[MeasurementPackage](./src/measurement_package.h).
-``` C++
-double UKFProcessor::ProcessMeasurement(const MeasurementPackage& theMeasurementPackage) {
-  
-  switch(theMeasurementPackage.sensor_type_) {
-    case MeasurementPackage::RADAR :
-      if (Tools::TESTING) std::cout << "UKFProcessor::RADAR" << std::endl;
-      if (useRadar()) {
-        return processMeasurement(theMeasurementPackage, &radarFilter);
-      }
-      break;
-    case MeasurementPackage::LASER :
-      if (Tools::TESTING) std::cout << "UKFProcessor::LIDAR" << std::endl;
-      if (useLidar()) {
-        return processMeasurement(theMeasurementPackage, &lidarFilter);
-      }
-      break;
-    default :
-      throw std::invalid_argument("");
-  }
-  throw std::logic_error("Not Implemented");
-}
-```
-#### Code Efficiency
-
-##### Your algorithm should avoid unnecessary calculations.
-
-The program was restructured to use object inheritance to improved comprehension and reduce the number of if-statement checks.
-
-
-#### Setting sigma for `std_a_` and `std_yawdd_`
-
-Although the nis was calculated, `std_a_` and `std_yawdd_` were set using RSME handheld gradient descent in
-[main.cpp](https://github.com/autohandle/CarNDUnscentedKalmanFilterProject/blob/c9128edb6d9b0dbce3230a258c313610472cc8e8/src/main.cpp#L286-L301)
-
-``` C++
-if (Tools::SEARCHING && (argc>1)) {
-cout<<"SEARCHING argc: "<< argc <<"\n";
-for (int standardDeviation=1; standardDeviation<10; standardDeviation++) {
-  estimations.clear();
-  ground_truth.clear();
-  MatrixXd processNoiseQ = UKF::newCovariance(2, standardDeviation*0.1, 0.6);
-  KalmanState kalmanState = KalmanState(5);
-  cout <<"SEARCHING-standardDeviation: "<< standardDeviation*0.1 << "\n";
-  cout <<"SEARCHING-processNoiseQ: <"<< Tools::toString(processNoiseQ) << "\n";
-  UKFProcessor ukfProcessor = UKFProcessor(kalmanState,7/*numberof augmented states*/,
-                                           radarR, lidarR, processNoiseQ);
-  VectorXd rsme = runAsFileProcessor(ukfProcessor, argv[1]);
-  cout <<"SEARCHING-rsme: <"<< Tools::toString(rsme) << "\n";
-}
-```
-First `std_yawdd_` was left at 30 and then `std_a_` was iterated from .1
-```
-SEARCHING-standardDeviation: 0.1
-SEARCHING-processNoiseQ: <[2x2]=
-[0.01    0],
-[   0 0.64]
-SEARCHING-rsme: <[4x_]:
-[0.0825591,
-0.126184,
-0.350278,
-0.247264]
-
-...
-
-SEARCHING-standardDeviation: 0.5
-SEARCHING-processNoiseQ: <[2x2]=
-[0.25    0],
-[   0 0.64]
-SEARCHING-rsme: <[4x_]:
-[0.0597576,
-0.0865825,
-0.331234,
-0.215768]
-SEARCHING-standardDeviation: 0.6
-SEARCHING-processNoiseQ: <[2x2]=
-[0.36    0],
-[   0 0.64]
-SEARCHING-rsme: <[4x_]:
-[0.0610295,
-0.0852075,
-0.331,
-0.214751]
-SEARCHING-standardDeviation: 0.7
-SEARCHING-processNoiseQ: <[2x2]=
-[0.49    0],
-[   0 0.64]
-
-...
-...
-```
-then `std_a_` was set to .6 and `std_yawdd_` was iterated from .1
-```
-SEARCHING-standardDeviation: 0.1
-SEARCHING-processNoiseQ: <[2x2]=
-[0.36    0],
-[   0 0.01]
-SEARCHING-rsme: <[4x_]:
-[0.112037,
-0.112114,
-0.420742,
-0.327603]
-SEARCHING-standardDeviation: 0.2
-SEARCHING-processNoiseQ: <[2x2]=
-[0.36    0],
-[   0 0.04]
-SEARCHING-rsme: <[4x_]:
-[0.0745449,
-0.0870828,
-0.353645,
-0.246509]
-
-...
-
-SEARCHING-rsme: <[4x_]:
-[0.0636271,
-0.0843614,
-0.331769,
-0.215775]
-SEARCHING-standardDeviation: 0.5
-SEARCHING-processNoiseQ: <[2x2]=
-[0.36    0],
-[   0 0.25]
-SEARCHING-rsme: <[4x_]:
-[0.062336,
-0.0845163,
-0.329871,
-0.212797]
-SEARCHING-standardDeviation: 0.6
-SEARCHING-processNoiseQ: <[2x2]=
-[0.36    0],
-[   0 0.36]
-SEARCHING-rsme: <[4x_]:
-[0.0616555,
-0.0847325,
-0.32956,
-0.212253]
-SEARCHING-standardDeviation: 0.7
-SEARCHING-processNoiseQ: <[2x2]=
-[0.36    0],
-[   0 0.49]
-SEARCHING-rsme: <[4x_]:
-[0.0612645,
-0.0849679,
-0.330054,
-0.213075]
-SEARCHING-standardDeviation: 0.8
-SEARCHING-processNoiseQ: <[2x2]=
-[0.36    0],
-[   0 0.64]
-SEARCHING-rsme: <[4x_]:
-[0.0610295,
-0.0852075,
-0.331,
-0.214751]
-
-...
-```
-
-After iterating back and forth several times, 0.6 was selected for both.
 
 #### Video Implementation
 
-[Data Set 1 Video](https://s3.amazonaws.com/autohandle.com/video/UKF_DataSet_1.mp4)
-
-[Data Set 2 Video](https://s3.amazonaws.com/autohandle.com/video/UKF_DataSet_2.mp4)
+[Kidnapped Vehicle Project](https://s3.amazonaws.com/autohandle.com/video/CarNDKidnappedVehicleProject.mp4)
 
 The video was created by using a [screen recording tool](http://www.idownloadblog.com/2016/02/26/how-to-record-part-of-mac-screen-quicktime/).
+
