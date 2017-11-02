@@ -141,7 +141,7 @@ LandmarkObs* const inMapCoordinates = new LandmarkObs;
 (*inMapCoordinates).y = particleY+sin(theRoationfromCarToParticle)*observationX+ cos(theRoationfromCarToParticle)*observationY;
 return (*inMapCoordinates);
 ```
-The transformed observations and the reduced landmark list are used by [ParticleFilter::dataAssociation](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/24502292382ccf2178b8a5f79b45967ffa671ea8/src/particle_filter.cpp#L100-L120) to link each tranformed observation to the closest landmark.
+The transformed observations and the reduced landmark list are used by [ParticleFilter::dataAssociation](https://github.com/autohandle/CarNDKidnappedVehicleProject/blob/24502292382ccf2178b8a5f79b45967ffa671ea8/src/particle_filter.cpp#L100-L120) to link each transformed observation to the closest landmark.
 ``` C++
 LandmarkObs& landmark = theLandmarks[lm];
 const double distanceToLandmark=dist(landmark.x, landmark.y, prediction.x, prediction.y);
